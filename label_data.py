@@ -28,6 +28,9 @@ def create_csv(folder_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
 
     # Filter out images already in the CSV
     new_images = [img for img in image_files if img not in existing_filenames]
+    if not new_images:
+        print("No new images. CSV will not update.")
+        return
 
     # Shuffle the new images
     random.shuffle(new_images)
