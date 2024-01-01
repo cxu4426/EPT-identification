@@ -36,7 +36,7 @@ def create_csv(folder_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
     random.shuffle(new_images)
 
     # Create an empty dictionary to store partition data
-    partition_data = {'train': [], 'val': [], 'test': []}
+    partition_data = {'train': [], 'validation': [], 'test': []}
 
     # Iterate over each class and distribute samples to each partition
     for label_num in ['0', '1', '2']:
@@ -51,7 +51,7 @@ def create_csv(folder_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
 
         # Partition the data for the current class
         partition_data['train'].extend(class_images[:class_train_size])
-        partition_data['val'].extend(class_images[class_train_size:class_train_size + class_val_size])
+        partition_data['validation'].extend(class_images[class_train_size:class_train_size + class_val_size])
         partition_data['test'].extend(class_images[-class_test_size:])
 
     data = []

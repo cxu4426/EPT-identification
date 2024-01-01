@@ -5,51 +5,131 @@ Bugs Dataset
 """
 import os
 import pandas as pd
+import numpy as np
 import random
 from shutil import copyfile
+from PIL import Image
+from utils import config
 
 def read_csv(csv_file):
     return pd.read_csv(csv_file)
 
-def augment_data(input_folder, output_folder, data):
+def resize(img_path):
+    """Resize and replace single image"""
+    img = Image.open(img_path)
+    new_img = img.resize((config("image_dim"), config("image_dim")))
+    new_img.save(img_path)
+
+def augment_data(input_folder, output_folder, n, imgs, keep_img=False):
+    """Augment training images
+
+    :input_folder: path to original images
+    :output_folder: path to store augmented images
+    :n: number of augmented images from each original image
+    :imgs: list of filenames
+
+    Augmentations include grayscale, rotation, and Gaussian noise
+    """
     os.makedirs(output_folder, exist_ok=True)
 
-    for entry in data:
-        filename = entry['filename']
-        input_path = os.path.join(input_folder, filename)
-        output_path = os.path.join(output_folder, filename)
+    for img in imgs:
+        img_path = os.path.join(input_folder, img)
 
-        copyfile(input_path, output_path)  # Copy original image
+        image = Image.open(img_path)
 
-        # Apply augmentations only to training data
-        if 'train' in entry['partition']:
-            for augmentation in augmentations:
-                augmented_image = augmentation(input_path)
-                augmented_filename = filename.replace('.', f'_aug_{augmentation.__name__}.')
-                augmented_output_path = os.path.join(output_folder, augmented_filename)
-                augmented_image.save(augmented_output_path)
+        aug_img_path = os.path.join(output_folder, img)
+
+        if keep_img:
+            # Copy the original image to the output folder
+            image.save(aug_img_path)
+
+        # Apply augmentations
+        for i in range(n):
+            # Grayscale
+            grayscale_image = image.convert("L")
+            grayscale_output_path = os.path.join(output_folder, f"{img.split('.')[0]}_grayscale_{i}.{img.split('.')[-1]}")
+            grayscale_image.save(grayscale_output_path)
+
+            # Rotation
+            rotation_angle = random.uniform(-30, 30)
+            rotated_image = image.rotate(rotation_angle)
+            rotated_output_path = os.path.join(output_folder, f"{img.split('.')[0]}_rotated_{i}.{img.split('.')[-1]}")
+            rotated_image.save(rotated_output_path)
+
+            # Gaussian Noise
+            noisy_image = add_gaussian_noise(image)
+            noisy_output_path = os.path.join(output_folder, f"{img.split('.')[0]}_noisy_{i}.{img.split('.')[-1]}")
+            noisy_image.save(noisy_output_path)
+
+def add_gaussian_noise(image):
+    """Add Gaussian noise to an image"""
+    mean = 0
+    std = 25
+    noisy_image = image.copy()
+    width, height = noisy_image.size
+    gaussian_noise = ImageEnhance.Brightness(Image.new('L', (width, height), int(mean + random.gauss(0, std)))).enhance(0.01)
+    noisy_image.paste(Image.new('RGB', (width, height), (0, 0, 0)), (0, 0), gaussian_noise)
+    return noisy_image
+
+def normalize_images(image_paths):
+    """
+    Normalize a list of images.
+
+    :param image_paths: List of file paths to images.
+    :return: List of normalized image arrays.
+    """
+    images = []
+
+    # Load images
+    for path in image_paths:
+        image = Image.open(path)
+        image_array = np.array(image)
+        images.append(image_array)
+
+    # Calculate mean and standard deviation
+    images_array = np.stack(images, axis=0)
+    mean = np.mean(images_array, axis=(0, 1, 2))
+    std = np.std(images_array, axis=(0, 1, 2))
+
+    # Normalize images
+    normalized_images = [(image_array - mean) / std for image_array in images]
+
+    return normalized_images
+
 
 def main():
-    # Specify paths and ratios
-    csv_file_path = 'path/to/your/csv/file.csv'
-    input_images_folder = 'path/to/your/images/folder'
-    output_augmented_folder = 'path/to/your/augmented/folder'
+    data_path = os.path.join(os.getcwd(), 'data')
+    csv_path = os.path.join(data_path, 'bugs.csv')
+    df = read_csv(csv_path)
 
-    # Define augmentations (you can replace this with your own augmentations)
-    def rotate(img_path):
-        # Add your rotation logic here
-        pass
+    train_imgs = df.loc[df['partition'] == 'train', 'filename'].tolist()
+    val_imgs = df.loc[df['partition'] == 'validation', 'filename'].tolist()
+    test_imgs = df.loc[df['partition'] == 'test', 'filename'].tolist()
 
-    def grayscale(img_path):
-        # Add your grayscale logic here
-        pass
+    img_path = os.path.join(data_path, 'images')
+    aug_img_path = os.path.join(data_path, 'augmented_images')
 
-    augmentations = [rotate, grayscale]
 
-    # Read CSV file (data is a dataframe)
-    data = read_csv(csv_file_path)
+    # # Specify paths and ratios
+    # csv_file_path = 'path/to/your/csv/file.csv'
+    # input_images_folder = 'path/to/your/images/folder'
+    # output_augmented_folder = 'path/to/your/augmented/folder'
 
-    # TODO: get training images only and augment (use augment_data.py?)
+    # # Define augmentations (you can replace this with your own augmentations)
+    # def rotate(img_path):
+    #     # Add your rotation logic here
+    #     pass
+
+    # def grayscale(img_path):
+    #     # Add your grayscale logic here
+    #     pass
+
+    # augmentations = [rotate, grayscale]
+
+    # # Read CSV file (data is a dataframe)
+    # data = read_csv(csv_file_path)
+
+    # # TODO: get training images only and augment (use augment_data.py?)
 
 if __name__ == "__main__":
     main()
