@@ -1,7 +1,7 @@
 {
     "image_path": "data/images/",
     "csv_file": "data/bugs.csv",
-    "augmented_csv_file": "data/augmented_bugs.csv",
     "augmented_image_path": "data/augmented/",
-    "image_dim": 320
+    "augmented_csv_file": "data/augmented_bugs.csv",
+    "image_dim": 256
 }

@@ -10,6 +10,7 @@ import sys
 import numpy as np
 from scipy.ndimage import rotate
 from imageio.v3 import imread, imwrite
+from utils import config
 
 import rng_control
 
@@ -89,13 +90,13 @@ def main(args):
     reader = csv.DictReader(open(args.input, "r"), delimiter=",")
     writer = csv.DictWriter(
         open(f"{args.datadir}/augmented_bugs.csv", "w"),
-        fieldnames=["filename", "semantic_label", "partition", "numeric_label", "task"],
+        fieldnames=["filename", "semantic_label", "numeric_label", "partition"],
     )
     augment_partitions = set(args.partitions)
 
     # TODO: change `augmentations` to specify which augmentations to apply
-    augmentations = [Grayscale()]
-    # augmentations = [Grayscale(), Rotate()]
+    # augmentations = [Grayscale()]
+    augmentations = [Grayscale(), Rotate()]
 
     writer.writeheader()
     os.makedirs(f"{args.datadir}/augmented/", exist_ok=True)
@@ -125,20 +126,20 @@ def main(args):
                     "semantic_label": row["semantic_label"],
                     "partition": row["partition"],
                     "numeric_label": row["numeric_label"],
-                    "task": row["task"],
                 }
             )
 
 
 if __name__ == "__main__":
+    input = os.path.join(os.getcwd(), config("csv_file"))
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", help="Path to input CSV file")
+    parser.add_argument("input", help="Path to input CSV file", default=[input])
     parser.add_argument("datadir", help="Data directory", default="./data/")
     parser.add_argument(
         "-p",
         "--partitions",
         nargs="+",
-        help="Partitions (train|val|test|challenge|none)+ to apply augmentations to. Defaults to train",
+        help="Partitions (train|val|test)+ to apply augmentations to. Defaults to train",
         default=["train"],
     )
     main(parser.parse_args(sys.argv[1:]))
