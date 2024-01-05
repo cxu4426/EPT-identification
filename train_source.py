@@ -23,7 +23,6 @@ def main():
     """Train source model on multiclass data."""
     # Data loaders
     tr_loader, va_loader, te_loader, _ = get_train_val_test_loaders(
-        task="source",
         batch_size=config("source.batch_size"),
     )
 

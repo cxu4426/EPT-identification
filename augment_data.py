@@ -95,8 +95,8 @@ def main(args):
     augment_partitions = set(args.partitions)
 
     # TODO: change `augmentations` to specify which augmentations to apply
-    # augmentations = [Grayscale()]
-    augmentations = [Grayscale(), Rotate()]
+    augmentations = [Rotate()]
+    # augmentations = [Grayscale(), Rotate()]
 
     writer.writeheader()
     os.makedirs(f"{args.datadir}/augmented/", exist_ok=True)
@@ -115,7 +115,7 @@ def main(args):
             f"{args.datadir}/images/{row['filename']}",
             augmentations,
             n=1,
-            original=False,  # TODO: change to False to exclude original image.
+            original=True,  # TODO: change to False to exclude original image.
         )
         for i, img in enumerate(imgs):
             fname = f"{row['filename'][:-4]}_aug_{i}.png"
@@ -133,8 +133,9 @@ def main(args):
 if __name__ == "__main__":
     input = os.path.join(os.getcwd(), config("csv_file"))
     parser = argparse.ArgumentParser()
+    print(input)
     parser.add_argument("input", help="Path to input CSV file", default=[input])
-    parser.add_argument("datadir", help="Data directory", default="./data/")
+    parser.add_argument("datadir", help="Data directory", default=["./data/"])
     parser.add_argument(
         "-p",
         "--partitions",

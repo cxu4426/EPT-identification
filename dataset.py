@@ -38,7 +38,7 @@ def get_train_val_test_datasets(**kwargs):
     Image standardizer should be fit to train data and applied to all splits.
     """
     tr = BugsDataset("train", **kwargs)
-    va = BugsDataset("val", **kwargs)
+    va = BugsDataset("validation", **kwargs)
     te = BugsDataset("test", **kwargs)
 
     # Resize
@@ -106,21 +106,20 @@ class ImageStandardizer(object):
 
     def transform(self, X):
         """Return standardized dataset given dataset X."""
-        print(X)
         return (X - self.image_mean)/self.image_std
 
 
 class BugsDataset(Dataset):
     """Dataset class for bug images."""
 
-    def __init__(self, partition, augment=False):
+    def __init__(self, partition, augment=True):
         """Read in the necessary data from disk.
 
         For data augmentation, `augment` should be True.
         """
         super().__init__()
 
-        if partition not in ["train", "val", "test", "challenge"]:
+        if partition not in ["train", "validation", "test", "challenge"]:
             raise ValueError("Partition {} does not exist".format(partition))
 
         np.random.seed(42)
