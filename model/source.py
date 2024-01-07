@@ -27,7 +27,7 @@ class Source(nn.Module):
         self.conv2 = nn.Conv2d(16,64,5,stride=2,padding=2)
         self.conv3 = nn.Conv2d(64,8,5,stride=2,padding=2)
         self.pool = nn.MaxPool2d(2,stride=2)
-        self.fc1 = nn.Linear(64,3)
+        self.fc1 = nn.Linear(512, 3)
 
         self.init_weights()
 
