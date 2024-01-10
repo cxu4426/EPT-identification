@@ -71,7 +71,7 @@ def augment(filename, transforms, n=1, original=True):
     :transforms: List of image transformations
     :n: number of augmented images to save
     :original: whether to include the original images in the augmented dataset or not
-    :returns: a list of augmented images, where the first image is the original
+    :returns: a list of augmented images, where the first image is the original user chooses to include it
 
     """
     print(f"Augmenting {filename}")
@@ -114,7 +114,7 @@ def main(args):
         imgs = augment(
             f"{args.datadir}/images/{row['filename']}",
             augmentations,
-            n=1,
+            n=2,  # TODO: choose how many times you want the augment the same image. Default is 1
             original=True,  # TODO: change to False to exclude original image.
         )
         for i, img in enumerate(imgs):
@@ -131,11 +131,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    input = os.path.join(os.getcwd(), config("csv_file"))
     parser = argparse.ArgumentParser()
-    print(input)
-    parser.add_argument("input", help="Path to input CSV file", default=[input])
-    parser.add_argument("datadir", help="Data directory", default=["./data/"])
+    parser.add_argument("--input", help="Path to input CSV file", default="data/bugs.csv")
+    parser.add_argument("--datadir", help="Data directory", default="data")
     parser.add_argument(
         "-p",
         "--partitions",
