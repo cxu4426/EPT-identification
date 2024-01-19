@@ -49,19 +49,54 @@ def Grayscale():
         :returns: H x W x C numpy array
 
         """
-        avg_img = np.mean(img, axis=2, keepdims=True)
-        avg_img = np.rint(avg_img)
+        grayscale_img = np.mean(img, axis=-1, keepdims=True)
+    
+        # Round to the nearest integer
+        grayscale_img = np.round(grayscale_img).astype(np.uint8)
 
-        for i in range(len(avg_img)):
-            for j in range(len(avg_img[i])):
-                img[i][j][0] = avg_img[i][j]
-                img[i][j][1] = avg_img[i][j]
-                img[i][j][2] = avg_img[i][j]
+        # Expand dimensions to make it H x W x 3
+        grayscale_img = np.repeat(grayscale_img, 3, axis=-1)
+        
+        # avg_img = np.mean(img, axis=2, keepdims=True)
+        # avg_img = np.rint(avg_img)
 
-        return img
+        # for i in range(len(avg_img)):
+        #     for j in range(len(avg_img[i])):
+        #         img[i][j][0] = avg_img[i][j]
+        #         img[i][j][1] = avg_img[i][j]
+        #         img[i][j][2] = avg_img[i][j]
+
+        return grayscale_img
 
     return _grayscale
 
+def Noise(scale=0.02):
+    """Return function to add camera noise to image.
+
+    :scale: Scale factor for noise intensity
+    :returns: Function to add camera noise to image
+    """
+
+    def _noise(img):
+        """Add Gaussian noise to the image.
+
+        Randomly perturb pixel values with Gaussian noise in each channel.
+
+        :img: H x W x C numpy array
+        :returns: H x W x C numpy array
+        """
+        # Generate Gaussian noise with the same shape as the input image
+        noise = np.random.normal(scale=scale, size=img.shape)
+
+        # Add noise to each channel independently
+        noisy_img = img + noise
+
+        # Ensure pixel values are in the valid range [0, 255]
+        noisy_img = np.clip(noisy_img, 0, 255).astype(np.uint8)
+
+        return noisy_img
+
+    return _noise
 
 
 def augment(filename, transforms, n=1, original=True):
@@ -78,7 +113,7 @@ def augment(filename, transforms, n=1, original=True):
     img = imread(filename)
     res = [img] if original else []
     for i in range(n):
-        new = img
+        new = imread(filename)
         for transform in transforms:
             new = transform(new)
         res.append(new)
@@ -95,8 +130,8 @@ def main(args):
     augment_partitions = set(args.partitions)
 
     # TODO: change `augmentations` to specify which augmentations to apply
-    augmentations = [Rotate()]
-    # augmentations = [Grayscale(), Rotate()]
+    # augmentations = [Rotate()]
+    augmentations = [Noise()]
 
     writer.writeheader()
     os.makedirs(f"{args.datadir}/augmented/", exist_ok=True)
@@ -114,7 +149,7 @@ def main(args):
         imgs = augment(
             f"{args.datadir}/images/{row['filename']}",
             augmentations,
-            n=2,  # TODO: choose how many times you want the augment the same image. Default is 1
+            n=1,  # TODO: choose how many times you want the augment the same image. Default is 1
             original=True,  # TODO: change to False to exclude original image.
         )
         for i, img in enumerate(imgs):

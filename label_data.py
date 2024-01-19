@@ -1,12 +1,14 @@
 """
 Reads all images and puts image information into bugs.csv
     Headers: filename,semantic_label,numeric_label,partition
-Also partitions the files into train/val/test, ensuring one of each in each class
+
+Partitions the files into train/val/test, ensuring one of each in each class
 """
 import os
 import random
 import pandas as pd
 from utils import config
+from PIL import Image
 
 def create_csv(folder_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
     image_path = os.path.join(folder_path, config("image_path"))
@@ -32,6 +34,13 @@ def create_csv(folder_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
         print("No new images. CSV will not update.")
         return
 
+    # Resize images
+    for img in new_images:
+        path = os.path.join(image_path, img)
+        og_img = Image.open(path)
+        new_img = og_img.resize((config("image_dim"), config("image_dim")))
+        new_img.save(path)
+    
     # Shuffle the new images
     random.shuffle(new_images)
 
@@ -45,9 +54,9 @@ def create_csv(folder_path, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
 
         # Calculate sizes for train/val/test for the current class
         class_total_size = len(class_images)
+        class_train_size = int(train_ratio * class_total_size)
         class_val_size = max(1, int(val_ratio * class_total_size))
-        class_test_size = max(1, int(test_ratio * class_total_size))
-        class_train_size = class_total_size - class_val_size - class_test_size
+        class_test_size = class_total_size - class_train_size - class_val_size
 
         # Partition the data for the current class
         partition_data['train'].extend(class_images[:class_train_size])

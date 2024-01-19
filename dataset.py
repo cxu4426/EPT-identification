@@ -106,6 +106,7 @@ class ImageStandardizer(object):
 
     def transform(self, X):
         """Return standardized dataset given dataset X."""
+        print(X.shape)
         return (X - self.image_mean)/self.image_std
 
 
